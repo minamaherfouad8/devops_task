@@ -1,0 +1,42 @@
+Step 1: Install Docker & KinD
+# 1. Download KinD binary
+curl -Lo /usr/local/bin/kind https://kind.sigs.k8s.io/dl/v0.23.0/kind-linux-amd64
+chmod +x /usr/local/bin/kind
+
+# 2. Make sure Docker is running and uses your 80G space
+systemctl start docker
+
+
+Step 2: install Docker :
+# 1. Install required helper tools
+dnf install -y yum-utils
+
+# 2. Add the official Docker CE repository
+yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+# 3. Install Docker Engine
+dnf install -y docker-ce docker-ce-cli containerd.io
+
+
+Step 3: Create the Multi-Node KinD Cluster
+
+Create your configuration layout for 1 Master + 2 Workers:
+
+ kind-config.yaml
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  extraPortMappings:
+  - containerPort: 80
+    hostPort: 80
+    protocol: TCP
+  - containerPort: 443
+    hostPort: 443
+    protocol: TCP
+- role: worker
+- role: worker
+
+
+Step 4:create cluster :
+kind create cluster --config kind-config.yaml --name assignment-cluster
