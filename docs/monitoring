@@ -1,0 +1,11 @@
+Recommended Monitoring Stack for OWASP Juice Shop
+
+Because the Juice Shop application is built on Node.js/Express, the industry standard for monitoring this environment is the kube-prometheus-stack (Prometheus + Grafana).
+
+    Prometheus Operator: Automatically discovers cluster components and scrapes application targets via custom ServiceMonitor definitions.
+
+    Node Exporter: Installed on the worker nodes to track raw physical device consumption (CPU, Memory, and Disk I/O across your 80G partition).
+
+    Nginx Ingress Prometheus Metrics: Captures critical edge data (HTTP Request Volume, Request Latency, and 4xx/5xx error rates) to detect malicious scanning attempts against the web app.
+
+    Grafana Dashboards: Aggregates metrics into real-time operational views to analyze active user connections, payload throughput, and pod cluster resource limitations.
