@@ -1,0 +1,109 @@
+stages:
+  - build_app
+  - test
+  - scan_app
+  - build_image
+  - scan_image
+  - deploy
+
+variables:
+  # Define Docker registry configurations (adjust variables in GitLab UI)
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
+  LATEST_TAG: $CI_REGISTRY_IMAGE:latest
+
+# =======================================================
+# 1. BUILDING THE APPLICATION
+# =======================================================
+build_job:
+  stage: build_app
+  image: python:3.10-slim
+  script:
+    - pip install -r requirements.txt
+    - python manage.py build
+  artifacts:
+    paths:
+      - build/
+    expire_in: 2 hours
+
+# =======================================================
+# 2. RUNNING UNIT TESTS
+# =======================================================
+test_job:
+  stage: test
+  image: python:3.10-slim
+  script:
+    - pip install -r requirements.txt
+    - pytest
+
+# =======================================================
+# 3. SCANNING THE APPLICATION (DevSecOps)
+# =======================================================
+scan_code_job:
+  stage: scan_app
+  image: python:3.10-slim
+  script:
+    - pip install safety bandit
+    # Safety checks dependencies for known security vulnerabilities
+    - safety check -r requirements.txt
+    # Bandit scans Python code for security flaws (ignoring low-severity)
+    - bandit -r . -ll
+
+# =======================================================
+# 4. BUILDING THE DOCKER IMAGE
+# =======================================================
+build_docker_job:
+  stage: build_image
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    # Build image with dual tags (commit-specific and latest)
+    - docker build -t $IMAGE_TAG -t $LATEST_TAG .
+    # Save the image as a tarball to pass to the scanning stage
+    - docker save -o image.tar $IMAGE_TAG
+  artifacts:
+    paths:
+      - image.tar
+    expire_in: 1 hour
+
+# =======================================================
+# 5. SCANNING THE DOCKER IMAGE (The Gatekeeper)
+# =======================================================
+scan_image_job:
+  stage: scan_image
+  image: 
+    name: aquasec/trivy:latest
+    entrypoint: [""]
+  services:
+    - docker:24.0.5-dind
+  script:
+    # Load the built image from the artifact
+    - docker load -i image.tar
+    # Scan the image. If CRITICAL vulnerabilities are found, exit code 1 will FAIL this job.
+    - trivy image --exit-code 1 --severity CRITICAL $IMAGE_TAG
+    # Only if the scan succeeds (exit code 0), log in and push the image to the registry
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker push $IMAGE_TAG
+    - docker push $LATEST_TAG
+
+# =======================================================
+# 6. DEPLOYING THE APPLICATION
+# =======================================================
+deploy_job:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    # Set up SSH environment
+    - apk add --no-cache openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $STAGING_SERVER_IP >> ~/.ssh/known_hosts
+  script:
+    # Deploy the build directory to the staging server using SCP
+    - scp -r ./build/* user@$STAGING_SERVER_IP:/var/www/staging/
+  only:
+    - master
