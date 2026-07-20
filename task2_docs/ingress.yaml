@@ -1,0 +1,31 @@
+## This file defines the routing rules for the NGINX Ingress Controller to expose the service to external HTTP traffic.
+
+# API version for Kubernetes Networking resources
+apiVersion: networking.k8s.io/v1
+
+# Kind of resource defining external HTTP/HTTPS routing rules
+kind: Ingress
+
+# Metadata identifying the ingress rule
+metadata:
+  name: juice-shop-ingress   # Name of the Ingress resource
+  namespace: default        # Kubernetes namespace where this resource resides
+
+# Specification of routing rules
+spec:
+  # Specifies which Ingress controller class should process this rule
+  ingressClassName: nginx   # Connects this rule to the installed NGINX Ingress Controller
+
+  # List of routing rules
+  rules:
+  - http:
+      paths:
+      # Matches all incoming HTTP requests starting at root '/'
+      - path: /
+        pathType: Prefix    # Matches any path that starts with '/'
+        backend:
+          # Defines the destination service for matched requests
+          service:
+            name: juice-shop-service # Target service defined in service.yaml
+            port:
+              number: 80             # Target port on juice-shop-service
