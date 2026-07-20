@@ -18,25 +18,7 @@ yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce
 dnf install -y docker-ce docker-ce-cli containerd.io
 
 
-Step 3: Create the Multi-Node KinD Cluster
 
-Create your configuration layout for 1 Master + 2 Workers:
+Step 3: Deploy the Nginx Ingress Controller suitable for kind
+#kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
 
- kind-config.yaml
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-nodes:
-- role: control-plane
-  extraPortMappings:
-  - containerPort: 80
-    hostPort: 80
-    protocol: TCP
-  - containerPort: 443
-    hostPort: 443
-    protocol: TCP
-- role: worker
-- role: worker
-
-
-Step 4:create cluster :
-kind create cluster --config kind-config.yaml --name assignment-cluster
