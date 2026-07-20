@@ -1,0 +1,26 @@
+##  This file defines the internal networking service that routes traffic to the Juice Shop pod.
+
+# Core Kubernetes API version
+apiVersion: v1
+
+# Kind of resource defining internal network abstraction
+kind: Service
+
+# Metadata identifying the service
+metadata:
+  name: juice-shop-service   # Name of the service
+  namespace: default        # Kubernetes namespace where this resource resides
+
+# Specification defining how the service routes traffic
+spec:
+  # Service type: ClusterIP makes the app accessible internally inside the cluster
+  type: ClusterIP
+
+  # Network port configurations
+  ports:
+  - port: 80             # The port exposed internally by this service
+    targetPort: 3000     # The target container port to forward incoming traffic to
+
+  # Selector used to discover target pods to route traffic to
+  selector:
+    app: juice-shop      # Routes traffic to any pod with the 'app: juice-shop' label
