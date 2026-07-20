@@ -6,7 +6,9 @@ ENV NODE_PATH=/usr/local/lib/node_modules
 
 # 3. Update/upgrade packages, install extra system packages, and clean cache in a single layer
 # We use Alpine's apk manager. --no-cache avoids saving local index files to keep the image small.
-RUN apk update && \
+RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf && \
+    echo "nameserver 1.1.1.1" >> /etc/resolv.conf && \
+    apk update && \
     apk upgrade && \
     apk add --no-cache curl zip iputils
 
