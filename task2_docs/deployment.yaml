@@ -1,0 +1,38 @@
+## This file defines the Juice Shop application deployment, managing the pod replicas and container specifications.
+# API version for Kubernetes Workload Workspaces
+apiVersion: apps/v1
+
+# Kind of Kubernetes resource being defined
+kind: Deployment
+
+# Metadata identifying the deployment resource
+metadata:
+  name: juice-shop        # Name of the deployment
+  namespace: default     # Kubernetes namespace where this resource resides
+
+# Specification of the desired state of the deployment
+spec:
+  replicas: 1            # Run exactly 1 instance (pod) of the application
+  
+  # Label selector used by the deployment to manage its created pods
+  selector:
+    matchLabels:
+      app: juice-shop    # Matches pods that have the 'app: juice-shop' label
+
+  # Template used to create new pods
+  template:
+    metadata:
+      # Labels assigned to pods created from this template
+      labels:
+        app: juice-shop
+        
+    # Specification of containers inside the pod
+    spec:
+      containers:
+        # Container identifier
+      - name: juice-shop
+        # Docker image to pull from Docker Hub
+        image: bkimminich/juice-shop:latest
+        # Ports exposed by the container
+        ports:
+        - containerPort: 3000  # Juice Shop web app runs internally on port 3000
