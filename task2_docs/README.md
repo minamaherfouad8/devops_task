@@ -12,4 +12,34 @@ This repository contains the deployment configuration and setup instructions for
 * **Service Type**: `ClusterIP` exposed externally via NGINX Ingress rules.
 
 ---
+## 📁 Repository Structure
 
+```text
+.
+├── kind-config.yaml    # KinD multi-node cluster topology & host port mappings
+├── deployment.yaml     # Kubernetes Deployment manifest for OWASP Juice Shop
+├── service.yaml        # Kubernetes ClusterIP Service routing definition
+├── ingress.yaml        # NGINX Ingress rule routing HTTP traffic to Service
+└── README.md           # Detailed task documentation and architectural guidelines
+
+```
+
+
+[ User / Browser ]
+          │
+          ▼  (HTTP / Port 80)
+┌─────────────────────────────────────────────────────────────┐
+│  Host Machine (Local Computer)                              │
+│         │                                                   │
+│         ▼  (ExtraPortMapping: hostPort 80 -> containerPort 80)
+│  Control Plane Node (KinD Container)                        │
+│         │                                                   │
+│         ▼                                                   │
+│  NGINX Ingress Controller Pod (Namespace: ingress-nginx)   │
+│         │                                                   │
+│         ▼  (Matches path '/' -> juice-shop-service:80)      │
+│  Juice Shop Service (ClusterIP: Port 80)                    │
+│         │                                                   │
+│         ▼  (TargetPort mapping: 80 -> 3000)                  │
+│  Juice Shop Application Pod (ContainerPort: 3000)           │
+└─────────────────────────────────────────────────────────────┘
