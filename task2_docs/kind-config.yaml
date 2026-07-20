@@ -1,0 +1,26 @@
+# Specifies the API version for KinD cluster configurations
+apiVersion: kind.x-k8s.io/v1alpha4
+
+# Declares the resource type as a KinD Cluster
+kind: Cluster
+
+# List of nodes that make up the cluster
+nodes:
+  # 1. Control Plane Node (Master node)
+  - role: control-plane
+    # Port mappings to route host traffic into the KinD node container
+    extraPortMappings:
+      # Map host port 80 (HTTP) to container port 80 (where NGINX Ingress listens)
+      - containerPort: 80
+        hostPort: 80
+        protocol: TCP
+      # Map host port 443 (HTTPS) to container port 443 (for TLS traffic)
+      - containerPort: 443
+        hostPort: 443
+        protocol: TCP
+
+  # 2. Worker Node 1 (Runs application workloads)
+  - role: worker
+
+  # 3. Worker Node 2 (Runs application workloads)
+  - role: worker
