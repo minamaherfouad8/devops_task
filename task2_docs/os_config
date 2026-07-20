@@ -19,3 +19,8 @@ dnf install -y docker-ce docker-ce-cli containerd.io
 Step 3: Deploy the Nginx Ingress Controller suitable for kind
 #kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
 
+
+# Add specific IP to rich rule set
+sudo firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="192.168.1.100" port protocol="tcp" port="6443" accept'
+sudo firewall-cmd --reload
+
